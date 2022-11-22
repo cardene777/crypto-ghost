@@ -23,6 +23,12 @@ GOERLI_PRIVATE_KEY= # Your Wallet Private Key
 
 - [Alchemy](https://dashboard.alchemy.com/)
 
+## Compile
+
+```sh
+npx hardhat clean
+npx hardhat compile
+```
 
 ## Test
 

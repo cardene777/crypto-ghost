@@ -2,7 +2,18 @@ const hre = require("hardhat");
 
 const main = async () => {
     const [owner] = await hre.ethers.getSigners();
-    const ObjFactory = await hre.ethers.getContractFactory("Obj");
+
+    const VectorLibrary = await hre.ethers.getContractFactory("Vector");
+    const vector = await VectorLibrary.deploy();
+    await vector.deployed();
+
+
+    const ObjFactory = await hre.ethers.getContractFactory("Obj", {
+        signer: owner,
+        libraries: {
+            Vector: vector.address
+        }
+    });
     const ObjContract = await ObjFactory.deploy();
     const contract = await ObjContract.deployed();
 
