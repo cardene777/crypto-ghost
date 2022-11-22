@@ -1,45 +1,13 @@
-## React & TypeScript
+## Setup
 
-### Start
-
-```sh
-npx create-react-app front --template typescript
-```
-
-### Tailwind.CSS
+### Install Module
 
 ```sh
-npm install -D tailwindcss postcss autoprefixer
-npx tailwindcss init -p
+npm ci
 ```
 
-- tailwind.config.js
-
-```js
-/** @type {import('tailwindcss').Config} */
-module.exports = {
-  content: [
-    "./src/**/*.{js,jsx,ts,tsx}",
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-}
-```
-
-- index.CSS
-
-```js
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-```
-
-### Module
-
-- TypeScript
+### Start App
 
 ```sh
-npm install --save-dev typescript ts-loader webpack webpack-cli webpack-dev-server
+npm start
 ```
