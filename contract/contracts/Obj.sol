@@ -69,7 +69,7 @@ contract Obj is MintNft {
         console.log("fMesh create");
         fMesh = Base64.encode(bytes(fMesh));
         // Base64
-        fMesh = string(abi.encodePacked("data:model/obj,", string(fMesh)));
+        fMesh = string(abi.encodePacked("data:model/obj;base64,", string(fMesh)));
         return fMesh;
     }
 

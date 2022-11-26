@@ -6,7 +6,16 @@ describe("Obj", function () {
     async function deployObj() {
         const [owner, otherAccount] = await ethers.getSigners();
 
-        const objContractFactory = await ethers.getContractFactory("Obj");
+        const VectorLibrary = await hre.ethers.getContractFactory("Vector");
+        const vector = await VectorLibrary.deploy();
+        await vector.deployed();
+
+        const objContractFactory = await ethers.getContractFactory("Obj", {
+            signer: owner,
+            libraries: {
+                Vector: vector.address
+            }
+        });
         const objContract = await objContractFactory.deploy();
 
         return { objContract, owner, otherAccount };

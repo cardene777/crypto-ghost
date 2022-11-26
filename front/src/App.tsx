@@ -1,9 +1,13 @@
 import { BaseProvider } from '@metamask/providers';
 import { ethers } from "ethers";
-import React,{ useState, useEffect } from "react";
-import './App.css';
+import React,{ useState, useEffect, createContext, useContext } from "react";
+import { Canvas, useFrame, useLoader } from '@react-three/fiber';
 
+import './App.css';
 import abi from "./utils/Obj.json";
+import { OBJLoader } from "./component/module/OBJLoader";
+import Header from "./component/Header";
+import Three from "./component/Three";
 
 declare global {
   interface Window {
@@ -11,14 +15,44 @@ declare global {
   }
 }
 
+function Scene(objData: string) {
+  const obj = useLoader(OBJLoader, objData)
+  return <primitive object={obj} />
+}
+
+// Animation
+function ObjAnimation(objData: any) {
+  const objAnimation: any = React.useRef();
+
+  useFrame(({ clock }) => {
+    const animation = clock.getElapsedTime();
+    objAnimation.current.rotation.y = animation;
+  });
+
+  return (
+    <mesh ref={objAnimation}>
+      { Scene(objData[0]) }
+      <meshStandardMaterial color="red"/>
+    </mesh>
+  );
+}
+
+// 他のComponentとデータを共有
+export const DataContext = createContext({} as {
+  connectWallet: () => void
+  currentAccount: string
+  setCurrentAccount: React.Dispatch<React.SetStateAction<string>>
+})
+
 function App() {
 
-    const contractAddress = "0x7b90EE900eaf38eA399cff094Ac8397cb9Db9D62";
+    const contractAddress = "0x664aA5273306a66a0534Ee3B39812F42aA28d638";
 
     // ユーザーのパブリックウォレットを保存するために使用する状態変数を定義
     const [currentAccount, setCurrentAccount] = useState("");
 
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    // OBJデータを格納する配列
+    const [objData, setObjData] = useState<string[]>([]);
 
     interface GhostInterface {
       name: string;
@@ -43,6 +77,7 @@ function App() {
 
     // ABIを参照
     const contractABI = abi.abi;
+
 
     // connectWalletメソッドを実装
     const connectWallet = async () => {
@@ -189,8 +224,6 @@ function App() {
     // readGhost
     const readGhost = async (ghostId: number, _divNumHorizontal: number) => {
       try {
-        console.log(`ghostId: ${ghostId}`);
-        console.log(`_divNumHorizontal: ${_divNumHorizontal}`);
         const { ethereum } = window;
         if (ethereum) {
           const provider = new ethers.providers.Web3Provider(ethereum);
@@ -203,7 +236,10 @@ function App() {
           );
 
           const ghostData = await readGhostContract.readGhost(ghostId, _divNumHorizontal);
-          console.log(`ghostData: ${ghostData}`)
+          if (ghostData[4] > objData.length) {
+            console.log(ghostData[0])
+            setObjData((objData => [...objData, ghostData[0]]));
+          }
         } else {
           console.log("Ethereum object doesn't exist!");
         }
@@ -219,231 +255,13 @@ function App() {
 
     return (
       <div className="App">
+
         {/* Header */}
-        <div className="px-4 py-5 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-24 lg:px-8">
-          <div className="relative flex items-center justify-between">
-            <div className="flex items-center">
-              <a
-                href="/"
-                aria-label="Company"
-                title="Company"
-                className="inline-flex items-center mr-8"
-              >
-                <svg
-                  className="w-8 text-deep-purple-accent-400"
-                  viewBox="0 0 24 24"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeMiterlimit="10"
-                  stroke="currentColor"
-                  fill="none"
-                >
-                  <rect x="3" y="1" width="7" height="12" />
-                  <rect x="3" y="17" width="7" height="6" />
-                  <rect x="14" y="1" width="7" height="6" />
-                  <rect x="14" y="11" width="7" height="12" />
-                </svg>
-                <span className="ml-2 text-xl font-bold tracking-wide text-gray-800 uppercase">
-                  Grave3D
-                </span>
-              </a>
-              <ul className="flex items-center hidden space-x-8 lg:flex">
-                <li>
-                  <a
-                    href="/"
-                    aria-label="Our product"
-                    title="Our product"
-                    className="font-medium tracking-wide text-gray-700 transition-colors duration-200 hover:text-deep-purple-accent-400"
-                  >
-                    Product
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="/"
-                    aria-label="Our product"
-                    title="Our product"
-                    className="font-medium tracking-wide text-gray-700 transition-colors duration-200 hover:text-deep-purple-accent-400"
-                  >
-                    Features
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="/"
-                    aria-label="Product pricing"
-                    title="Product pricing"
-                    className="font-medium tracking-wide text-gray-700 transition-colors duration-200 hover:text-deep-purple-accent-400"
-                  >
-                    Pricing
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="/"
-                    aria-label="About us"
-                    title="About us"
-                    className="font-medium tracking-wide text-gray-700 transition-colors duration-200 hover:text-deep-purple-accent-400"
-                  >
-                    About us
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <ul className="flex items-center hidden space-x-8 lg:flex">
-                { !currentAccount &&
-                  <li>
-                    <button
-                      // href="/"
-                      className="inline-flex items-center justify-center h-12 px-6 font-medium tracking-wide text-white transition duration-200 rounded shadow-md bg-deep-purple-accent-400 hover:bg-deep-purple-accent-700 focus:shadow-outline focus:outline-none"
-                      onClick={connectWallet}
-                    >
-                      Connect Wallet
-                    </button>
-                  </li>
-                }
-                  { currentAccount &&
-                  <li>
-                    { currentAccount }
-                  </li>
-                }
-            </ul>
-            <div className="lg:hidden">
-              <button
-                aria-label="Open Menu"
-                title="Open Menu"
-                className="p-2 -mr-1 transition duration-200 rounded focus:outline-none focus:shadow-outline hover:bg-deep-purple-50 focus:bg-deep-purple-50"
-                onClick={() => setIsMenuOpen(true)}
-              >
-                <svg className="w-5 text-gray-600" viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M23,13H1c-0.6,0-1-0.4-1-1s0.4-1,1-1h22c0.6,0,1,0.4,1,1S23.6,13,23,13z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M23,6H1C0.4,6,0,5.6,0,5s0.4-1,1-1h22c0.6,0,1,0.4,1,1S23.6,6,23,6z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M23,20H1c-0.6,0-1-0.4-1-1s0.4-1,1-1h22c0.6,0,1,0.4,1,1S23.6,20,23,20z"
-                  />
-                </svg>
-              </button>
-              {isMenuOpen && (
-                <div className="absolute top-0 left-0 w-full">
-                  <div className="p-5 bg-white border rounded shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <a
-                          href="/"
-                          aria-label="Company"
-                          title="Company"
-                          className="inline-flex items-center"
-                        >
-                          <svg
-                            className="w-8 text-deep-purple-accent-400"
-                            viewBox="0 0 24 24"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeMiterlimit="10"
-                            stroke="currentColor"
-                            fill="none"
-                          >
-                            <rect x="3" y="1" width="7" height="12" />
-                            <rect x="3" y="17" width="7" height="6" />
-                            <rect x="14" y="1" width="7" height="6" />
-                            <rect x="14" y="11" width="7" height="12" />
-                          </svg>
-                          <span className="ml-2 text-xl font-bold tracking-wide text-gray-800 uppercase">
-                            Company
-                          </span>
-                        </a>
-                      </div>
-                      <div>
-                        <button
-                          aria-label="Close Menu"
-                          title="Close Menu"
-                          className="p-2 -mt-2 -mr-2 transition duration-200 rounded hover:bg-gray-200 focus:bg-gray-200 focus:outline-none focus:shadow-outline"
-                          onClick={() => setIsMenuOpen(false)}
-                        >
-                          <svg className="w-5 text-gray-600" viewBox="0 0 24 24">
-                            <path
-                              fill="currentColor"
-                              d="M19.7,4.3c-0.4-0.4-1-0.4-1.4,0L12,10.6L5.7,4.3c-0.4-0.4-1-0.4-1.4,0s-0.4,1,0,1.4l6.3,6.3l-6.3,6.3 c-0.4,0.4-0.4,1,0,1.4C4.5,19.9,4.7,20,5,20s0.5-0.1,0.7-0.3l6.3-6.3l6.3,6.3c0.2,0.2,0.5,0.3,0.7,0.3s0.5-0.1,0.7-0.3 c0.4-0.4,0.4-1,0-1.4L13.4,12l6.3-6.3C20.1,5.3,20.1,4.7,19.7,4.3z"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                    <nav>
-                      <ul className="space-y-4">
-                        <li>
-                          <a
-                            href="/"
-                            aria-label="Our product"
-                            title="Our product"
-                            className="font-medium tracking-wide text-gray-700 transition-colors duration-200 hover:text-deep-purple-accent-400"
-                          >
-                            Product
-                          </a>
-                        </li>
-                        <li>
-                          <a
-                            href="/"
-                            aria-label="Our product"
-                            title="Our product"
-                            className="font-medium tracking-wide text-gray-700 transition-colors duration-200 hover:text-deep-purple-accent-400"
-                          >
-                            Features
-                          </a>
-                        </li>
-                        <li>
-                          <a
-                            href="/"
-                            aria-label="Product pricing"
-                            title="Product pricing"
-                            className="font-medium tracking-wide text-gray-700 transition-colors duration-200 hover:text-deep-purple-accent-400"
-                          >
-                            Pricing
-                          </a>
-                        </li>
-                        <li>
-                          <a
-                            href="/"
-                            aria-label="About us"
-                            title="About us"
-                            className="font-medium tracking-wide text-gray-700 transition-colors duration-200 hover:text-deep-purple-accent-400"
-                          >
-                            About us
-                          </a>
-                        </li>
-                          { !currentAccount &&
-                            <li>
-                              <button
-                                className="inline-flex items-center justify-center w-full h-12 px-6 font-medium tracking-wide text-white transition duration-200 rounded shadow-md bg-deep-purple-accent-400 hover:bg-deep-purple-accent-700 focus:shadow-outline focus:outline-none"
-                                onClick={connectWallet}
-                              >
-                                Connect Wallet
-                              </button>
-                            </li>
-                          }
-                          { currentAccount &&
-                            <li>
-                              { currentAccount.substr(0, 8) }...
-                            </li>
-                          }
-                      </ul>
-                    </nav>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-        {/* Header end */}
+        <DataContext.Provider value={{
+          connectWallet, currentAccount, setCurrentAccount}}>
+          <Header />
+        </DataContext.Provider>
+
         <div className="px-4 py-16 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-24 lg:px-8 lg:py-20">
           <div className="max-w-xl mb-10 md:mx-auto sm:text-center lg:max-w-2xl md:mb-12">
             <div>
@@ -502,11 +320,13 @@ function App() {
               className="inline-block overflow-hidden duration-300 transform bg-white rounded shadow-sm hover:-translate-y-2"
             >
               <div className="flex flex-col h-full">
-                <img
-                  src="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260"
-                  className="object-cover w-full h-48"
-                  alt=""
-                />
+              <Canvas>
+                <ambientLight intensity={0.1} />
+                <directionalLight position={[0, 0, 5]} />
+                <pointLight position={[10, 10, 10]} />
+                {/* <Three /> */}
+                { ObjAnimation(objData) }
+              </Canvas>
                 <div className="flex-grow border border-t-0 rounded-b">
                   <div className="p-5">
                     <h6 className="mb-2 font-semibold leading-5">
@@ -683,14 +503,6 @@ function App() {
                   </div>
                 </div>
               </div>
-            </a>
-          </div>
-          <div className="text-center">
-            <a
-              href="/"
-              className="inline-flex items-center justify-center w-full h-12 px-6 font-medium tracking-wide text-white transition duration-200 rounded shadow-md md:w-auto bg-deep-purple-accent-400 hover:bg-deep-purple-accent-700 focus:shadow-outline focus:outline-none"
-            >
-              Learn more
             </a>
           </div>
         </div>
