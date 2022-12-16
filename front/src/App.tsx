@@ -5,7 +5,7 @@ import { Canvas, useFrame, useLoader } from '@react-three/fiber';
 
 import './App.css';
 import abi from "./utils/Obj.json";
-import { OBJLoader } from "./component/module/OBJLoader";
+import { OBJLoader } from "./hooks/OBJLoader";
 import Header from "./component/Header";
 import Three from "./component/Three";
 
@@ -15,33 +15,12 @@ declare global {
   }
 }
 
-function Scene(objData: string) {
-  const obj = useLoader(OBJLoader, objData)
-  return <primitive object={obj} />
-}
-
-// Animation
-function ObjAnimation(objData: any) {
-  const objAnimation: any = React.useRef();
-
-  useFrame(({ clock }) => {
-    const animation = clock.getElapsedTime();
-    objAnimation.current.rotation.y = animation;
-  });
-
-  return (
-    <mesh ref={objAnimation}>
-      { Scene(objData[0]) }
-      <meshStandardMaterial color="red"/>
-    </mesh>
-  );
-}
-
 // 他のComponentとデータを共有
 export const DataContext = createContext({} as {
   connectWallet: () => void
   currentAccount: string
   setCurrentAccount: React.Dispatch<React.SetStateAction<string>>
+  objItem: string
 })
 
 function App() {
@@ -77,6 +56,8 @@ function App() {
 
     // ABIを参照
     const contractABI = abi.abi;
+
+    const objItem = "";
 
 
     // connectWalletメソッドを実装
@@ -236,10 +217,15 @@ function App() {
           );
 
           const ghostData = await readGhostContract.readGhost(ghostId, _divNumHorizontal);
-          if (ghostData[4] > objData.length) {
+          // if (ghostData[4] > objData.length) {
+          //   console.log(ghostData[0])
+          //   setObjData((objData => [...objData, ghostData[0]]));
+          // }
+          if (!objData.includes(ghostData[0])) {
             console.log(ghostData[0])
             setObjData((objData => [...objData, ghostData[0]]));
           }
+          console.log(objData)
         } else {
           console.log("Ethereum object doesn't exist!");
         }
@@ -251,6 +237,7 @@ function App() {
     // WEBページロード時に実行。
     useEffect(() => {
       checkIfWalletIsConnected();
+      getAllGhost()
     }, []);
 
     return (
@@ -258,7 +245,7 @@ function App() {
 
         {/* Header */}
         <DataContext.Provider value={{
-          connectWallet, currentAccount, setCurrentAccount}}>
+          connectWallet, currentAccount, setCurrentAccount, objItem}}>
           <Header />
         </DataContext.Provider>
 
@@ -314,196 +301,38 @@ function App() {
             </div>
           </div>
           <div className="grid gap-5 row-gap-5 mb-8 lg:grid-cols-4 sm:grid-cols-2">
-            <a
-              href="/"
-              aria-label="View Item"
-              className="inline-block overflow-hidden duration-300 transform bg-white rounded shadow-sm hover:-translate-y-2"
-            >
-              <div className="flex flex-col h-full">
-              <Canvas>
-                <ambientLight intensity={0.1} />
-                <directionalLight position={[0, 0, 5]} />
-                <pointLight position={[10, 10, 10]} />
-                {/* <Three /> */}
-                { ObjAnimation(objData) }
-              </Canvas>
-                <div className="flex-grow border border-t-0 rounded-b">
-                  <div className="p-5">
-                    <h6 className="mb-2 font-semibold leading-5">
-                      The doctor said
-                    </h6>
-                    <p className="text-sm text-gray-900">
-                      Sportacus andrew weatherall goose Refined gentlemen super
-                      mario des lynam alpha trion zap rowsdower.
-                    </p>
+            { objData.map((objItem: string, index: number) => {
+              return (
+                <a
+                  href="/"
+                  aria-label="View Item"
+                  className="inline-block overflow-hidden duration-300 transform bg-white rounded shadow-sm hover:-translate-y-2"
+                >
+                  <div className="flex flex-col h-full">
+                  <Canvas>
+                    <color attach="background" args={[0xf5f3fd]} />
+                    <ambientLight intensity={0.1} />
+                    <directionalLight position={[0, 0, 5]} />
+                    <pointLight position={[10, 10, 10]} />
+                    <DataContext.Provider value={{
+                      connectWallet, currentAccount, setCurrentAccount, objItem}}>
+                      <Three />
+                    </DataContext.Provider>
+                  </Canvas>
+                    <div className="flex-grow border border-t-0 rounded-b">
+                      <div className="p-5">
+                        <h6 className="mb-2 font-semibold leading-5">
+                          The doctor said
+                        </h6>
+                        <p className="text-sm text-gray-900">
+                          {objItem.substr(0, 28)}...
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </a>
-            <a
-              href="/"
-              aria-label="View Item"
-              className="inline-block overflow-hidden duration-300 transform bg-white rounded shadow-sm hover:-translate-y-2"
-            >
-              <div className="flex flex-col h-full">
-                <img
-                  src="https://images.pexels.com/photos/3182750/pexels-photo-3182750.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260"
-                  className="object-cover w-full h-48"
-                  alt=""
-                />
-                <div className="flex-grow border border-t-0 rounded-b">
-                  <div className="p-5">
-                    <h6 className="mb-2 font-semibold leading-5">
-                      Skate ipsum dolor
-                    </h6>
-                    <p className="text-sm text-gray-900">
-                      Bulbasaur Lorem ipsum dolor sit amet, consectetur adipiscing
-                      elit.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </a>
-            <a
-              href="/"
-              aria-label="View Item"
-              className="inline-block overflow-hidden duration-300 transform bg-white rounded shadow-sm hover:-translate-y-2"
-            >
-              <div className="flex flex-col h-full">
-                <img
-                  src="https://images.pexels.com/photos/3182746/pexels-photo-3182746.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260"
-                  className="object-cover w-full h-48"
-                  alt=""
-                />
-                <div className="flex-grow border border-t-0 rounded-b">
-                  <div className="p-5">
-                    <h6 className="mb-2 font-semibold leading-5">They urge you</h6>
-                    <p className="text-sm text-gray-900">
-                      A flower in my garden, a mystery in my panties. Heart attack
-                      never stopped old Big Bear.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </a>
-            <a
-              href="/"
-              aria-label="View Item"
-              className="inline-block overflow-hidden duration-300 transform bg-white rounded shadow-sm hover:-translate-y-2"
-            >
-              <div className="flex flex-col h-full">
-                <img
-                  src="https://images.pexels.com/photos/3184296/pexels-photo-3184296.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260"
-                  className="object-cover w-full h-48"
-                  alt=""
-                />
-                <div className="flex-grow border border-t-0 rounded-b">
-                  <div className="p-5">
-                    <h6 className="mb-2 font-semibold leading-5">
-                      Baseball ipsum dolor
-                    </h6>
-                    <p className="text-sm text-gray-900">
-                      Bro ipsum dolor sit amet gaper backside single track, manny
-                      Bike epic clipless. Schraeder drop gondy.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </a>
-            <a
-              href="/"
-              aria-label="View Item"
-              className="inline-block overflow-hidden duration-300 transform bg-white rounded shadow-sm hover:-translate-y-2"
-            >
-              <div className="flex flex-col h-full">
-                <img
-                  src="https://images.pexels.com/photos/3184311/pexels-photo-3184311.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;w=500"
-                  className="object-cover w-full h-48"
-                  alt=""
-                />
-                <div className="flex-grow border border-t-0 rounded-b">
-                  <div className="p-5">
-                    <h6 className="mb-2 font-semibold leading-5">
-                      The doctor said
-                    </h6>
-                    <p className="text-sm text-gray-900">
-                      Sportacus andrew weatherall goose Refined gentlemen super
-                      mario des lynam alpha trion zap rowsdower.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </a>
-            <a
-              href="/"
-              aria-label="View Item"
-              className="inline-block overflow-hidden duration-300 transform bg-white rounded shadow-sm hover:-translate-y-2"
-            >
-              <div className="flex flex-col h-full">
-                <img
-                  src="https://images.pexels.com/photos/3184338/pexels-photo-3184338.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260"
-                  className="object-cover w-full h-48"
-                  alt=""
-                />
-                <div className="flex-grow border border-t-0 rounded-b">
-                  <div className="p-5">
-                    <h6 className="mb-2 font-semibold leading-5">
-                      Skate ipsum dolor
-                    </h6>
-                    <p className="text-sm text-gray-900">
-                      Bulbasaur Lorem ipsum dolor sit amet, consectetur adipiscing
-                      elit.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </a>
-            <a
-              href="/"
-              aria-label="View Item"
-              className="inline-block overflow-hidden duration-300 transform bg-white rounded shadow-sm hover:-translate-y-2"
-            >
-              <div className="flex flex-col h-full">
-                <img
-                  src="https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260"
-                  className="object-cover w-full h-48"
-                  alt=""
-                />
-                <div className="flex-grow border border-t-0 rounded-b">
-                  <div className="p-5">
-                    <h6 className="mb-2 font-semibold leading-5">They urge you</h6>
-                    <p className="text-sm text-gray-900">
-                      A flower in my garden, a mystery in my panties. Heart attack
-                      never stopped old Big Bear.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </a>
-            <a
-              href="/"
-              aria-label="View Item"
-              className="inline-block overflow-hidden duration-300 transform bg-white rounded shadow-sm hover:-translate-y-2"
-            >
-              <div className="flex flex-col h-full">
-                <img
-                  src="https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260"
-                  className="object-cover w-full h-48"
-                  alt=""
-                />
-                <div className="flex-grow border border-t-0 rounded-b">
-                  <div className="p-5">
-                    <h6 className="mb-2 font-semibold leading-5">
-                      Baseball ipsum dolor
-                    </h6>
-                    <p className="text-sm text-gray-900">
-                      Bro ipsum dolor sit amet gaper backside single track, manny
-                      Bike epic clipless. Schraeder drop gondy.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </a>
+                </a>
+              )
+            } )}
           </div>
         </div>
       </div>
