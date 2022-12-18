@@ -1,5 +1,6 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import "hardhat-gas-reporter"
 
 require("dotenv").config();
 
@@ -27,6 +28,11 @@ const config: HardhatUserConfig = {
       url: ALCHEMY_API_KEY,
       accounts: [`0x${GOERLI_PRIVATE_KEY}`]
     },
+  },
+  gasReporter: {
+    enabled: (process.env.REPORT_GAS) ? true : false,
+    currency: 'USD',
+    gasPrice: 21
   }
 };
 

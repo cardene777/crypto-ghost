@@ -19,6 +19,7 @@ touch ../.env
 ```sh
 ALCHEMY_API_KEY= # ALCHEMY API KEY
 GOERLI_PRIVATE_KEY= # Your Wallet Private Key
+REPORT_GAS= # Report Gas True or False
 ```
 
 - [Alchemy](https://dashboard.alchemy.com/)

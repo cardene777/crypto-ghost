@@ -29,10 +29,10 @@ contract Obj is MintNft {
     VectorData[] public vectorData;
     Ghost[] public ghost;
 
-    uint256 goadtIdCounter = 1;
+    uint256 ghosttIdCounter = 1;
     uint256 objDataId = 1;
 
-    mapping(uint256 => uint256) divNumHorizontalToObjDataId;
+    mapping(uint256 => uint256) public divNumHorizontalToObjDataId;
 
     function createObjFile(uint256 _divNumHorizontal)
         public
@@ -69,7 +69,7 @@ contract Obj is MintNft {
         console.log("fMesh create");
         fMesh = Base64.encode(bytes(fMesh));
         // Base64
-        fMesh = string(abi.encodePacked("data:model/obj,", string(fMesh)));
+        fMesh = string(abi.encodePacked("data:model/obj;base64,", string(fMesh)));
         return fMesh;
     }
 
@@ -85,9 +85,12 @@ contract Obj is MintNft {
             _baseVVector,
             _baseVnVector
         );
-        vectorData.push(_newObjData);
-        divNumHorizontalToObjDataId[_divNumHorizontal] = objDataId;
-        objDataId++;
+        if (divNumHorizontalToObjDataId[_divNumHorizontal] == 0) {
+            divNumHorizontalToObjDataId[_divNumHorizontal] = objDataId;
+            objDataId++;
+            vectorData.push(_newObjData);
+            console.log("Add Vector Data");
+        }
     }
 
     function writeGhost(
@@ -103,11 +106,11 @@ contract Obj is MintNft {
             _name,
             _description,
             _material,
-            goadtIdCounter,
+            ghosttIdCounter,
             vectorDataIndex
         );
+        ghosttIdCounter++;
         ghost.push(_newGhost);
-        goadtIdCounter++;
 
         // ghostNftMint(_name, _description,
         //     vectorData[vectorDataIndex-1].divNumHorizontal,
@@ -146,6 +149,17 @@ contract Obj is MintNft {
 
     function getAllVector() external view returns (VectorData[] memory) {
         return vectorData;
+    }
+
+    function getVector(uint vectorId) external view returns (uint, uint) {
+        return (
+            vectorData[vectorId - 1].divNumHorizontal,
+            vectorData[vectorId - 1].divNumVertical
+        );
+    }
+
+    function getDivNumHorizontalToObjDataId(uint _divNumHorizontal) external view returns(uint) {
+        return divNumHorizontalToObjDataId[_divNumHorizontal];
     }
 
 }
