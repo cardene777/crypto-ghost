@@ -25,7 +25,7 @@ export const DataContext = createContext({} as {
 
 function App() {
 
-    const contractAddress = "0x452882885cCe1dCF449878Eda8d9D53d077B4319";
+    const contractAddress = "0x5532DcF8367AAe084F69d65Ea0B34876b65e6C19";
 
     // ユーザーのパブリックウォレットを保存するために使用する状態変数を定義
     const [currentAccount, setCurrentAccount] = useState("");
