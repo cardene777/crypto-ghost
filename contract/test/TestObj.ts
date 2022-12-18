@@ -46,16 +46,21 @@ describe("Obj", function () {
         console.log(createObjFile);
         console.log("createObjFile")
 
-        const transaction4 = await objContract.readGhost(
+        const objData = await objContract.readGhost(
             1,
             12
         );
-        console.log(transaction4);
+        console.log(objData);
         console.log("ゴーストのデータとOBJファイルを取得できました。")
 
         const transaction5 = await objContract.getAllGhost();
         console.log(transaction5);
         console.log("ゴーストのデータを全て取得できました。")
+
+        const ghostNft = await objContract.ghostNftMint(objData[0], "TestGhost", "Mint Test Ghost NFT", 12, 6);
+        console.log(ghostNft);
+        console.log("GhostをMintしました。")
+        console.log("Contract deployed to: ", objContract.address);
 
 
     });

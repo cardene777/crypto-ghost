@@ -27,12 +27,12 @@ contract MintNft is ERC721URIStorage {
     // _tokenIdsを初期化（_tokenIds = 0）
     Counters.Counter private _tokenIds;
 
-    string baseSvg = "<svg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='xMinYMin meet' viewBox='0 0 350 350'><style>.base { fill: #F8F5F5; font-family: 'Georgia, serif'; font-size: 24px; }</style><rect width='100%' height='100%' fill='#3FC0A1' /><text x='50%' y='50%' className='base' dominant-baseline='middle' text-anchor='middle'>";
-
     // NFT トークンの名前とそのシンボルを渡す。
-    constructor() ERC721 ("GhostNFT", "GHOST") {
+    constructor() ERC721("Ghost NFT", "GHOST") {
         console.log("Create GhostNFT");
     }
+
+    string[] ghostObj;
 
     // シードを生成する関数を作成。
     function random(string memory input) internal pure returns (uint256) {
@@ -41,31 +41,32 @@ contract MintNft is ERC721URIStorage {
 
     // ユーザーが NFT を取得するために実行する関数。
     function ghostNftMint(
+        string memory _objData,
         string memory _name,
         string memory _description,
-        uint divNumHorizontal,
-        uint divNumVertical,
-        string[] memory baseVVector,
-        string[] memory baseVnVector
+        uint _divNumHorizontal,
+        uint _divNumVertical
         ) public {
 
+        // NFT IDカウンターをインクリメント。
+        _tokenIds.increment();
         // 現在のtokenIdを取得。tokenIdは0から始まる。
         uint256 newItemId = _tokenIds.current();
 
-        string memory finalSvg = baseSvg;
-        console.log(finalSvg);
+        string memory finalSvg = "<svg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='xMinYMin meet' viewBox='0 0 350 350'><style>.base { fill: #F8F5F5; font-family: 'Georgia, serif'; font-size: 24px; }</style><rect width='100%' height='100%' fill='#3FC0A1' /><text x='50%' y='50%' className='base' dominant-baseline='middle' text-anchor='middle'>";
 
         string memory svgText;
-        svgText = string.concat(Strings.toString(divNumHorizontal), "\n", Strings.toString(divNumVertical), "\n");
-        for (uint i = 0; i < baseVnVector.length; i++) {
-            svgText = string.concat(svgText, baseVVector[i], baseVnVector[i], "\n");
-        }
+        svgText = string.concat("#", Strings.toString(newItemId), " ", _name, " ");
+        svgText = string.concat(svgText, Strings.toString(_divNumHorizontal), " x ", Strings.toString(_divNumVertical));
 
         finalSvg = string(abi.encodePacked(finalSvg, svgText, "</text></svg>"));
 
         // NFTに出力されるテキストをターミナルに出力。
         console.log("\n----- SVG data -----");
         console.log(finalSvg);
+        console.log("--------------------\n");
+        console.log("\n----- OBJ data -----");
+        console.log(_objData);
         console.log("--------------------\n");
 
 
@@ -75,24 +76,20 @@ contract MintNft is ERC721URIStorage {
                 string(
                     abi.encodePacked(
                         '{"name": "',
-                        // NFTのタイトルを生成される言葉に設定。
                         _name,
-                        '", "description":',
+                        '", "image_data": "',
+                        Base64.encode(bytes(finalSvg)),
+                        '", "description": "',
                         _description,
-                        ', "image": "data:image/svg+xml;base64,',
-                        //  data:image/svg+xml;base64 を追加し、SVG を base64 でエンコードした結果を追加。
-                        // Base64.encode(bytes(_svg)),
-                        finalSvg,
+                        '", "animation_url": "',
+                        // OBJデータ
+                        _objData,
                         '"}'
                     )
                 )
             )
         );
 
-        // データの先頭に data:application/json;base64 を追加。
-        // string memory tokenUri = string(
-        //     abi.encodePacked("data:application/json;base64,", json)
-        // );
         string memory tokenUri = string(
             abi.encodePacked("data:application/json;base64,", json)
         );
@@ -101,16 +98,25 @@ contract MintNft is ERC721URIStorage {
         console.log(tokenUri);
         console.log("--------------------\n");
 
+        ghostObj.push(_objData);
+
         // msg.sender を使って NFT を送信者に Mint。
-        _safeMint(msg.sender, newItemId);
+        _safeMint(_msgSender(), newItemId);
 
         // tokenURIを更新。
         _setTokenURI(newItemId, tokenUri);
 
+        string memory _tokenURI = tokenURI(newItemId);
+
+        console.log("tokenURI: ", _tokenURI);
+
         // NFTがいつ誰に作成されたかを確認。
         console.log("An NFT w/ ID %s has been minted to %s", newItemId, msg.sender);
 
-        // 次の NFT が Mint されるときのカウンターをインクリメントする。
-        _tokenIds.increment();
     }
+
+    function getAllObjData() public view returns(string[] memory) {
+        return ghostObj;
+    }
+
 }
