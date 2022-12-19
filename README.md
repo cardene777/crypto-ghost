@@ -2,6 +2,8 @@
 
 3D full-on chain NFT
 
+OBJデータ生成に必要な情報（ベクトル情報など）をコントラクトに渡し、OBJデータを生成したのちにNFTのメタデータにOBJデータを刻み込んでミントしているフルオンチェーンNFTです。
+
 https://crypto-ghost.vercel.app/
 
 ## Solidity
