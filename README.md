@@ -4,7 +4,11 @@
 
 OBJデータ生成に必要な情報（ベクトル情報など）をコントラクトに渡し、OBJデータを生成したのちにNFTのメタデータにOBJデータを刻み込んでミントしているフルオンチェーンNFTです。
 
+[main]  
 https://crypto-ghost.vercel.app/
+
+[dev]  
+https://crypto-ghost-dev.vercel.app/
 
 ## Solidity
 
